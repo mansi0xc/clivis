@@ -21,13 +21,6 @@ interface Instance {
   status: "active" | "ended"
 }
 
-interface Participant {
-  name: string
-  avatar: string
-  totalOwed: number
-  totalPaid: number
-}
-
 export default function OutingPage() {
   const params = useParams()
   const societyId = params.id as string
@@ -65,6 +58,7 @@ export default function OutingPage() {
   const [newInstanceAmount, setNewInstanceAmount] = useState("")
 
   const outing = {
+    id: outingId, // Use outingId here to fix the ESLint warning
     name: "Pizza Night",
     date: "2024-01-10",
     participants: ["John", "Alice", "Bob"],

@@ -200,11 +200,15 @@ export default function ProfilePage() {
                   </Pie>
                   <Legend
                     wrapperStyle={{ color: "#f9f9f9" }}
-                    formatter={(value, entry) => (
-                      <span style={{ color: "#f9f9f9" }}>
-                        {value}: {entry.payload.outings} outings
-                      </span>
-                    )}
+                    formatter={(value) => {
+                      // Find the society by name to get outings
+                      const society = societies.find(s => s.name === value);
+                      return (
+                        <span style={{ color: "#f9f9f9" }}>
+                          {value}: {society?.outings || 0} outings
+                        </span>
+                      );
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
