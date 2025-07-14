@@ -1,103 +1,139 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Navigation, Users, Calculator, TrendingUp } from "lucide-react"
+import { useRouter } from "next/navigation"
+
+export default function LandingPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const router = useRouter()
+
+  const handleGoogleAuth = () => {
+    // Simulate Google authentication
+    setIsAuthenticated(true)
+    router.push("/societies")
+  }
+
+  if (isAuthenticated) {
+    router.push("/societies")
+    return null
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-[#1a1a2e] text-[#f9f9f9]">
+      {/* Header */}
+      <header className="border-b border-[#16213e] px-6 py-4">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <Navigation className="h-8 w-8 text-[#e94560]" />
+            <span className="text-2xl font-bold">Compass</span>
+          </div>
+          <Button onClick={handleGoogleAuth} className="bg-[#e94560] hover:bg-[#d63851] text-white">
+            Sign in with Google
+          </Button>
+        </div>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Hero Section */}
+      <main className="max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-[#f9f9f9] to-[#e94560] bg-clip-text text-transparent">
+            Navigate Group Expenses
+          </h1>
+          <p className="text-xl md:text-2xl text-[#f9f9f9]/80 mb-8 max-w-3xl mx-auto">
+            Create societies, plan outings, and effortlessly track shared expenses with your friends. No more confusion
+            about who owes what.
+          </p>
+          <Button
+            onClick={handleGoogleAuth}
+            size="lg"
+            className="bg-[#e94560] hover:bg-[#d63851] text-white text-lg px-8 py-4"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Get Started with Google
+          </Button>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mb-20">
+          <Card className="bg-[#0f3460]/20 border-[#0f3460] hover:bg-[#16213e]/30 transition-colors">
+            <CardContent className="p-8 text-center">
+              <Users className="h-12 w-12 text-[#e94560] mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3">Create Societies</h3>
+              <p className="text-[#f9f9f9]/70">
+                Form groups with your friends and manage multiple societies for different activities.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#0f3460]/20 border-[#0f3460] hover:bg-[#16213e]/30 transition-colors">
+            <CardContent className="p-8 text-center">
+              <Calculator className="h-12 w-12 text-[#e94560] mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3">Track Expenses</h3>
+              <p className="text-[#f9f9f9]/70">
+                Record instances of spending during outings and automatically calculate who owes what.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#0f3460]/20 border-[#0f3460] hover:bg-[#16213e]/30 transition-colors">
+            <CardContent className="p-8 text-center">
+              <TrendingUp className="h-12 w-12 text-[#e94560] mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3">Smart Analytics</h3>
+              <p className="text-[#f9f9f9]/70">
+                View detailed statistics and insights about your group spending patterns.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* How it Works */}
+        <div className="text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-12">How Compass Works</h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                1
+              </div>
+              <h3 className="text-lg font-semibold">Join Societies</h3>
+              <p className="text-[#f9f9f9]/70 text-sm">
+                Create or join societies with your friend groups using simple codes.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                2
+              </div>
+              <h3 className="text-lg font-semibold">Plan Outings</h3>
+              <p className="text-[#f9f9f9]/70 text-sm">
+                Any member can create outings that others can join and participate in.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                3
+              </div>
+              <h3 className="text-lg font-semibold">Record Expenses</h3>
+              <p className="text-[#f9f9f9]/70 text-sm">
+                Launch instances to track individual expenses during your outings.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                4
+              </div>
+              <h3 className="text-lg font-semibold">Settle Up</h3>
+              <p className="text-[#f9f9f9]/70 text-sm">Automatically calculate and settle who owes what to whom.</p>
+            </div>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="border-t border-[#16213e] py-8 text-center text-[#f9f9f9]/60">
+        <p>&copy; 2024 Compass. Navigate your group expenses with ease.</p>
       </footer>
     </div>
-  );
+  )
 }
