@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Custom fields for our application
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  societiesCreated     Society[]           @relation("SocietyCreator")
+  societyMembers       SocietyMember[]
+  outingsCreated       Outing[]            @relation("OutingCreator")
+  outingParticipants   OutingParticipant[]
+  instancesCreated     Instance[]          @relation("InstanceCreator")
+  instanceParticipants InstanceParticipant[]
+  settlementsAsPayer   Settlement[]        @relation("SettlementPayer")
+  settlementsAsPayee   Settlement[]        @relation("SettlementPayee")
+
+  @@map(name: "users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Application Models
+model Society {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  creator     User     @relation("SocietyCreator", fields: [createdBy], references: [id])
+  members     SocietyMember[]
+  outings     Outing[]
+  
+  @@map(name: "societies")
+}
+
+model SocietyMember {
+  id        String   @id @default(cuid())
+  societyId String
+  userId    String
+  role      Role     @default(MEMBER)
+  joinedAt  DateTime @default(now())
+  status    MemberStatus @default(ACTIVE)
+  
+  society   Society  @relation(fields: [societyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([societyId, userId])
+  @@map(name: "society_members")
+}
+
+model Outing {
+  id        String   @id @default(cuid())
+  societyId String
+  name      String
+  date      DateTime
+  createdBy String
+  status    OutingStatus @default(PLANNED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  society     Society @relation(fields: [societyId], references: [id], onDelete: Cascade)
+  creator     User    @relation("OutingCreator", fields: [createdBy], references: [id])
+  participants OutingParticipant[]
+  instances   Instance[]
+  
+  @@map(name: "outings")
+}
+
+model OutingParticipant {
+  id       String @id @default(cuid())
+  outingId String
+  userId   String
+  status   ParticipantStatus @default(CONFIRMED)
+  joinedAt DateTime @default(now())
+  
+  outing   Outing @relation(fields: [outingId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([outingId, userId])
+  @@map(name: "outing_participants")
+}
+
+model Instance {
+  id        String   @id @default(cuid())
+  outingId  String
+  name      String
+  amount    Float
+  createdBy String
+  status    InstanceStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  outing       Outing @relation(fields: [outingId], references: [id], onDelete: Cascade)
+  creator      User   @relation("InstanceCreator", fields: [createdBy], references: [id])
+  participants InstanceParticipant[]
+  settlements  Settlement[]
+  
+  @@map(name: "instances")
+}
+
+model InstanceParticipant {
+  id         String @id @default(cuid())
+  instanceId String
+  userId     String
+  amountOwed Float  @default(0)
+  amountPaid Float  @default(0)
+  joinedAt   DateTime @default(now())
+  
+  instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([instanceId, userId])
+  @@map(name: "instance_participants")
+}
+
+model Settlement {
+  id         String @id @default(cuid())
+  instanceId String
+  payerId    String
+  payeeId    String
+  amount     Float
+  status     SettlementStatus @default(PENDING)
+  settledAt  DateTime?
+  createdAt  DateTime @default(now())
+  
+  instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  payer      User     @relation("SettlementPayer", fields: [payerId], references: [id])
+  payee      User     @relation("SettlementPayee", fields: [payeeId], references: [id])
+  
+  @@map(name: "settlements")
+}
+
+// Enums
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum OutingStatus {
+  PLANNED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipantStatus {
+  CONFIRMED
+  TENTATIVE
+  DECLINED
+}
+
+enum InstanceStatus {
+  ACTIVE
+  ENDED
+}
+
+enum SettlementStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}

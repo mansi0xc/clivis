@@ -204,9 +204,9 @@ export default function ProfilePage() {
                       // Find the society by name to get outings
                       const society = societies.find(s => s.name === value);
                       return (
-                        <span style={{ color: "#f9f9f9" }}>
+                      <span style={{ color: "#f9f9f9" }}>
                           {value}: {society?.outings || 0} outings
-                        </span>
+                      </span>
                       );
                     }}
                   />

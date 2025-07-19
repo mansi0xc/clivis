@@ -1,24 +1,46 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Navigation, Users, Calculator, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import Link from "next/link"
 
 export default function LandingPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const { data: session, status } = useSession()
   const router = useRouter()
 
-  const handleGoogleAuth = () => {
-    // Simulate Google authentication
-    setIsAuthenticated(true)
+  useEffect(() => {
+    // Only redirect if user is authenticated
+    if (status === "authenticated" && session) {
     router.push("/societies")
   }
+  }, [session, status, router])
 
-  if (isAuthenticated) {
-    router.push("/societies")
-    return null
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-[#1a1a2e] text-[#f9f9f9] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e94560] mx-auto mb-4"></div>
+          <p className="text-lg">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If authenticated, show loading state while redirecting
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen bg-[#1a1a2e] text-[#f9f9f9] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e94560] mx-auto mb-4"></div>
+          <p className="text-lg">Redirecting...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -28,10 +50,12 @@ export default function LandingPage() {
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
             <Navigation className="h-8 w-8 text-[#e94560]" />
-            <span className="text-2xl font-bold">Compass</span>
+            <span className="text-2xl font-bold">Clivis</span>
           </div>
-          <Button onClick={handleGoogleAuth} className="bg-[#e94560] hover:bg-[#d63851] text-white">
+          <Button asChild className="bg-[#e94560] hover:bg-[#d63851] text-white">
+            <Link href="/auth/signin">
             Sign in with Google
+            </Link>
           </Button>
         </div>
       </header>
@@ -46,93 +70,65 @@ export default function LandingPage() {
             Create societies, plan outings, and effortlessly track shared expenses with your friends. No more confusion
             about who owes what.
           </p>
-          <Button
-            onClick={handleGoogleAuth}
-            size="lg"
-            className="bg-[#e94560] hover:bg-[#d63851] text-white text-lg px-8 py-4"
-          >
-            Get Started with Google
+          <Button asChild size="lg" className="bg-[#e94560] hover:bg-[#d63851] text-white text-lg px-8 py-6">
+            <Link href="/auth/signin">
+              Get Started
+            </Link>
           </Button>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
-          <Card className="bg-[#0f3460]/20 border-[#0f3460] hover:bg-[#16213e]/30 transition-colors">
-            <CardContent className="p-8 text-center">
-              <Users className="h-12 w-12 text-[#e94560] mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Create Societies</h3>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <Card className="bg-[#0f3460]/20 border-[#0f3460] p-6">
+            <CardContent className="text-center space-y-4">
+              <Users className="h-12 w-12 text-[#e94560] mx-auto" />
+              <h3 className="text-xl font-bold">Create Societies</h3>
               <p className="text-[#f9f9f9]/70">
-                Form groups with your friends and manage multiple societies for different activities.
+                Build groups with your friends, colleagues, or roommates. Organize your social circles effortlessly.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0f3460]/20 border-[#0f3460] hover:bg-[#16213e]/30 transition-colors">
-            <CardContent className="p-8 text-center">
-              <Calculator className="h-12 w-12 text-[#e94560] mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Track Expenses</h3>
+          <Card className="bg-[#0f3460]/20 border-[#0f3460] p-6">
+            <CardContent className="text-center space-y-4">
+              <Calculator className="h-12 w-12 text-[#e94560] mx-auto" />
+              <h3 className="text-xl font-bold">Track Expenses</h3>
               <p className="text-[#f9f9f9]/70">
-                Record instances of spending during outings and automatically calculate who owes what.
+                Split bills, track who paid what, and never lose track of shared expenses again.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0f3460]/20 border-[#0f3460] hover:bg-[#16213e]/30 transition-colors">
-            <CardContent className="p-8 text-center">
-              <TrendingUp className="h-12 w-12 text-[#e94560] mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Smart Analytics</h3>
+          <Card className="bg-[#0f3460]/20 border-[#0f3460] p-6">
+            <CardContent className="text-center space-y-4">
+              <TrendingUp className="h-12 w-12 text-[#e94560] mx-auto" />
+              <h3 className="text-xl font-bold">Settle Up</h3>
               <p className="text-[#f9f9f9]/70">
-                View detailed statistics and insights about your group spending patterns.
+                Get clear settlement suggestions and make sure everyone gets paid back fairly.
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* How it Works */}
-        <div className="text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12">How Compass Works</h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-                1
-              </div>
-              <h3 className="text-lg font-semibold">Join Societies</h3>
-              <p className="text-[#f9f9f9]/70 text-sm">
-                Create or join societies with your friend groups using simple codes.
+        {/* CTA Section */}
+        <div className="text-center mt-20">
+          <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
+          <p className="text-xl text-[#f9f9f9]/80 mb-8">
+            Join thousands of users who trust Clivis to manage their group expenses.
               </p>
-            </div>
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-                2
-              </div>
-              <h3 className="text-lg font-semibold">Plan Outings</h3>
-              <p className="text-[#f9f9f9]/70 text-sm">
-                Any member can create outings that others can join and participate in.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-                3
-              </div>
-              <h3 className="text-lg font-semibold">Record Expenses</h3>
-              <p className="text-[#f9f9f9]/70 text-sm">
-                Launch instances to track individual expenses during your outings.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-[#e94560] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-                4
-              </div>
-              <h3 className="text-lg font-semibold">Settle Up</h3>
-              <p className="text-[#f9f9f9]/70 text-sm">Automatically calculate and settle who owes what to whom.</p>
-            </div>
-          </div>
+          <Button asChild size="lg" className="bg-[#e94560] hover:bg-[#d63851] text-white text-lg px-8 py-6">
+            <Link href="/auth/signin">
+              Sign Up Now
+            </Link>
+          </Button>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#16213e] py-8 text-center text-[#f9f9f9]/60">
-        <p>&copy; 2024 Compass. Navigate your group expenses with ease.</p>
+      <footer className="border-t border-[#16213e] px-6 py-8 mt-20">
+        <div className="max-w-7xl mx-auto text-center text-[#f9f9f9]/60">
+          <p>&copy; 2024 Clivis. All rights reserved.</p>
+        </div>
       </footer>
     </div>
   )
