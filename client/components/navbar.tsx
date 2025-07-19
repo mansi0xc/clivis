@@ -26,14 +26,32 @@ export default function Navbar() {
 
         <nav className="flex items-center gap-8">
           {session && (
-          <Link
-            href="/societies"
-            className={`text-lg font-medium transition-colors ${
-              pathname === "/societies" ? "text-[#e94560]" : "text-[#f9f9f9] hover:text-[#e94560]"
-            }`}
-          >
-            Societies
-          </Link>
+            <>
+              <Link
+                href="/societies"
+                className={`text-lg font-medium transition-colors ${
+                  pathname === "/societies" ? "text-[#e94560]" : "text-[#f9f9f9] hover:text-[#e94560]"
+                }`}
+              >
+                Societies
+              </Link>
+              <Link
+                href="/test-apis"
+                className={`text-lg font-medium transition-colors ${
+                  pathname === "/test-apis" ? "text-[#e94560]" : "text-[#f9f9f9] hover:text-[#e94560]"
+                }`}
+              >
+                Test APIs
+              </Link>
+              <Link
+                href="/api-docs"
+                className={`text-lg font-medium transition-colors ${
+                  pathname === "/api-docs" ? "text-[#e94560]" : "text-[#f9f9f9] hover:text-[#e94560]"
+                }`}
+              >
+                API Docs
+              </Link>
+            </>
           )}
 
           {status === "loading" ? (
