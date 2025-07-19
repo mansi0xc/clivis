@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db'
 // PUT /api/societies/[id]/members/[userId] - Update member role
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; userId: string } }
+  { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)

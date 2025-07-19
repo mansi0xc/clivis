@@ -16,6 +16,7 @@ export async function GET(
     }
 
     const { id } = await params
+
     const society = await prisma.society.findFirst({
       where: {
         id: id,
@@ -104,6 +105,7 @@ export async function PUT(
     }
 
     const { id } = await params
+
     // Check if user is admin of the society
     const member = await prisma.societyMember.findFirst({
       where: {
@@ -182,7 +184,7 @@ export async function PUT(
 // DELETE /api/societies/[id] - Delete society
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -191,10 +193,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Check if user is admin of the society
     const member = await prisma.societyMember.findFirst({
       where: {
-        societyId: params.id,
+        societyId: id,
         userId: session.user.id,
         status: 'ACTIVE',
         role: 'ADMIN'
@@ -208,7 +212,7 @@ export async function DELETE(
     // Delete society (cascade will handle related records)
     await prisma.society.delete({
       where: {
-        id: params.id
+        id: id
       }
     })
 

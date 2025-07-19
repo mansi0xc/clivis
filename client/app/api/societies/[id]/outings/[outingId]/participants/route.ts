@@ -3,10 +3,10 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// GET /api/societies/[id]/members - List society members
+// GET /api/societies/[id]/outings/[outingId]/participants - List outing participants
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; outingId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id, outingId } = await params
 
     // Check if user is a member of the society
     const userMember = await prisma.societyMember.findFirst({
@@ -30,10 +30,9 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    const members = await prisma.societyMember.findMany({
+    const participants = await prisma.outingParticipant.findMany({
       where: {
-        societyId: id,
-        status: 'ACTIVE'
+        outingId: outingId
       },
       include: {
         user: {
@@ -46,22 +45,22 @@ export async function GET(
         }
       },
       orderBy: [
-        { role: 'desc' }, // Admins first
+        { status: 'desc' }, // CONFIRMED first
         { joinedAt: 'asc' }
       ]
     })
 
-    return NextResponse.json({ members })
+    return NextResponse.json({ participants })
   } catch (error) {
-    console.error('Error fetching society members:', error)
+    console.error('Error fetching outing participants:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// POST /api/societies/[id]/members - Add member to society
+// POST /api/societies/[id]/outings/[outingId]/participants - Join outing
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; outingId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -70,60 +69,50 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id, outingId } = await params
 
-    // Check if user is admin of the society
+    // Check if user is a member of the society
     const userMember = await prisma.societyMember.findFirst({
       where: {
         societyId: id,
         userId: session.user.id,
-        status: 'ACTIVE',
-        role: 'ADMIN'
+        status: 'ACTIVE'
       }
     })
 
     if (!userMember) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    const { email, role = 'MEMBER' } = await request.json()
-
-    // Validate input
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return NextResponse.json({ error: 'Valid email is required' }, { status: 400 })
-    }
-
-    if (!['ADMIN', 'MEMBER'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
-    }
-
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // Check if user is already a member
-    const existingMember = await prisma.societyMember.findFirst({
+    // Check if outing exists and belongs to the society
+    const outing = await prisma.outing.findFirst({
       where: {
-        societyId: params.id,
-        userId: user.id
+        id: outingId,
+        societyId: id
       }
     })
 
-    if (existingMember) {
-      if (existingMember.status === 'ACTIVE') {
-        return NextResponse.json({ error: 'User is already a member' }, { status: 400 })
+    if (!outing) {
+      return NextResponse.json({ error: 'Outing not found' }, { status: 404 })
+    }
+
+    // Check if user is already a participant
+    const existingParticipant = await prisma.outingParticipant.findFirst({
+      where: {
+        outingId: outingId,
+        userId: session.user.id
+      }
+    })
+
+    if (existingParticipant) {
+      if (existingParticipant.status === 'CONFIRMED') {
+        return NextResponse.json({ error: 'Already participating in this outing' }, { status: 400 })
       } else {
-        // Reactivate inactive member
-        const member = await prisma.societyMember.update({
-          where: { id: existingMember.id },
+        // Update existing participant status
+        const participant = await prisma.outingParticipant.update({
+          where: { id: existingParticipant.id },
           data: {
-            status: 'ACTIVE',
-            role: role
+            status: 'CONFIRMED'
           },
           include: {
             user: {
@@ -136,17 +125,16 @@ export async function POST(
             }
           }
         })
-        return NextResponse.json({ member })
+        return NextResponse.json({ participant })
       }
     }
 
-    // Add new member
-    const member = await prisma.societyMember.create({
+    // Add new participant
+    const participant = await prisma.outingParticipant.create({
       data: {
-        societyId: id,
-        userId: user.id,
-        role: role,
-        status: 'ACTIVE'
+        outingId: outingId,
+        userId: session.user.id,
+        status: 'CONFIRMED'
       },
       include: {
         user: {
@@ -160,9 +148,9 @@ export async function POST(
       }
     })
 
-    return NextResponse.json({ member }, { status: 201 })
+    return NextResponse.json({ participant }, { status: 201 })
   } catch (error) {
-    console.error('Error adding society member:', error)
+    console.error('Error joining outing:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 } 
